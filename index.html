@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Unsere Reise</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+:root{--bg:#f4f1ea;--ink:#222;--muted:#6b6b6b;--accent:#2f3b2f;--accent2:#c8742c;--line:#d9d3c7}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);background:var(--bg)}
+header{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--accent);color:#fff}
+header h1{font-size:18px;margin:0;flex:1;font-weight:600}
+header button{border:1px solid rgba(255,255,255,.5);background:none;color:#fff;border-radius:8px;padding:4px 10px;font:inherit;font-size:13px}
+#app{display:none;flex-direction:column;height:100vh;height:100dvh}
+#map{height:45vh;min-height:220px;flex:none}
+#list{flex:1;overflow:auto;padding:10px 12px 30px}
+.upd{font-size:12px;color:var(--muted);margin:0 0 8px}
+.it{display:flex;gap:10px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px;margin-bottom:8px;cursor:pointer}
+.it .th{width:72px;height:72px;border-radius:8px;flex:none;background:#ddd center/cover;display:flex;align-items:center;justify-content:center;font-size:28px}
+.it .t{font-weight:600}.it .s{font-size:12px;color:var(--muted);margin-top:2px}
+.it .x{font-size:13px;margin-top:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pin{width:28px;height:28px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center}
+.pin span{transform:rotate(45deg);font-size:14px}
+#login{max-width:380px;margin:12vh auto 0;padding:24px;background:#fff;border-radius:14px;box-shadow:0 2px 14px rgba(0,0,0,.12)}
+#login h2{margin:0 0 6px}
+input{width:100%;font:inherit;padding:10px;border:1px solid var(--line);border-radius:8px;margin-top:10px}
+.btn{border:0;border-radius:8px;padding:11px 16px;font:inherit;font-weight:600;background:var(--accent);color:#fff;margin-top:12px;width:100%}
+.muted{color:var(--muted);font-size:13px}
+.err{color:#b00020;font-size:14px;margin-top:8px;min-height:1em}
+#det{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;z-index:2000}
+#det .p{position:absolute;left:0;right:0;bottom:0;max-height:92%;overflow:auto;background:var(--bg);border-radius:16px 16px 0 0;padding:16px 16px calc(24px + env(safe-area-inset-bottom))}
+@media (min-width:900px){#det .p{left:auto;top:0;width:480px;max-height:none;border-radius:0}#app{flex-direction:row}#map{height:100%;flex:1}#list{flex:none;width:420px}}
+#det h2{margin:0 0 4px}
+#det img{width:100%;border-radius:10px;margin-top:8px;background:#ddd;min-height:120px}
+.txt{white-space:pre-wrap;line-height:1.5;margin-top:10px}
+.lnk{display:inline-block;margin-top:12px;color:var(--accent2);font-weight:600}
+.close{float:right;border:0;background:#fff;border-radius:50%;width:34px;height:34px;font-size:18px}
+</style>
+</head>
+<body>
+<div id="login">
+  <h2 id="lTitle">Familienseite</h2>
+  <p class="muted">Diese Seite ist verschlüsselt. Bitte das Passwort eingeben, das ihr von uns bekommen habt.</p>
+  <form id="lForm"><input id="pw" type="password" autocomplete="current-password" placeholder="Passwort">
+  <label class="muted" style="display:flex;gap:8px;align-items:center;margin-top:10px"><input type="checkbox" id="keep" style="width:auto;margin:0"> Auf diesem Gerät merken</label>
+  <button class="btn" type="submit">Öffnen</button></form>
+  <div class="err" id="lErr"></div>
+</div>
+<div id="app">
+  <div style="display:flex;flex-direction:column;flex:1;min-height:0">
+    <header><h1 id="title">Unsere Reise</h1><button id="reload">Aktualisieren</button><button id="logout">Abmelden</button></header>
+    <div id="map"></div>
+  </div>
+  <div id="list"></div>
+</div>
+<div id="det"><div class="p" id="detP"></div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+"use strict";
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+let key=null,data=null,map=null,layer=null;const urls={};
+async function deriveKey(pw,salt,iter){const base=await crypto.subtle.importKey("raw",new TextEncoder().encode(pw),"PBKDF2",false,["deriveKey"]);
+  return crypto.subtle.deriveKey({name:"PBKDF2",salt,iterations:iter,hash:"SHA-256"},base,{name:"AES-GCM",length:256},false,["decrypt"]);}
+async function dec(k,bytes){return crypto.subtle.decrypt({name:"AES-GCM",iv:bytes.slice(0,12)},k,bytes.slice(12));}
+async function load(pw){
+  const r=await fetch("data.json?t="+Date.now(),{cache:"no-store"});if(!r.ok)throw new Error("Noch keine Daten veröffentlicht.");
+  const f=await r.json();
+  key=await deriveKey(pw,unb64(f.salt),f.iter);
+  let plain;try{plain=await dec(key,unb64(f.data));}catch(e){throw new Error("Passwort falsch.");}
+  data=JSON.parse(new TextDecoder().decode(plain));}
+async function photo(id){if(urls[id])return urls[id];
+  const r=await fetch("p/"+id+".bin");if(!r.ok)return "";const b=new Uint8Array(await r.arrayBuffer());
+  urls[id]=URL.createObjectURL(new Blob([await dec(key,b)],{type:"image/jpeg"}));return urls[id];}
+const fmt=d=>{try{return new Date(d+"T12:00:00").toLocaleDateString("de-CH",{weekday:"short",day:"numeric",month:"long",year:"numeric"});}catch(e){return d;}};
+function render(){
+  document.title=data.title;$("#title").textContent=data.title;
+  $("#login").style.display="none";$("#app").style.display="flex";
+  if(!map){map=L.map("map");
+    const base={"Karte":L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,attribution:"© Esri, HERE, Garmin, OpenStreetMap"}),
+      "Satellit":L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,attribution:"© Esri, Maxar"})};
+    base["Karte"].addTo(map);L.control.layers(base).addTo(map);layer=L.layerGroup().addTo(map);}
+  layer.clearLayers();
+  const pts=[...data.points].sort((a,b)=>(a.date||"").localeCompare(b.date||""));
+  if(pts.length>1)L.polyline(pts.map(p=>[p.lat,p.lon]),{color:"#c8742c",weight:3,opacity:.7,dashArray:"6 6"}).addTo(layer);
+  pts.forEach(p=>L.marker([p.lat,p.lon],{icon:L.divIcon({className:"",iconSize:[28,28],iconAnchor:[14,28],html:`<div class="pin" style="background:${p.color||"#2f3b2f"}"><span>${p.icon||"•"}</span></div>`})}).addTo(layer).on("click",()=>show(p.id)));
+  if(pts.length)map.fitBounds(L.latLngBounds(pts.map(p=>[p.lat,p.lon])),{padding:[30,30],maxZoom:12});else map.setView([31.8,-6.5],5);
+  const rev=[...pts].reverse();
+  $("#list").innerHTML=`<p class="upd">Zuletzt aktualisiert: ${new Date(data.updated).toLocaleString("de-CH",{dateStyle:"medium",timeStyle:"short"})} · ${pts.length} Einträge</p>`+
+    (rev.map(p=>`<div class="it" data-id="${p.id}"><div class="th" id="th_${p.id}">${p.icon||"📍"}</div><div><div class="t">${esc(p.title)}</div><div class="s">${esc(fmt(p.date))}${p.region?" · "+esc(p.region):""}</div><div class="x">${esc(p.text)}</div></div></div>`).join("")||`<p class="muted">Noch keine Einträge.</p>`);
+  $("#list").querySelectorAll(".it").forEach(e=>e.onclick=()=>show(e.dataset.id));
+  rev.forEach(async p=>{if(p.photos&&p.photos[0]){const u=await photo(p.photos[0]);const t=$("#th_"+p.id);if(u&&t){t.style.backgroundImage=`url(${u})`;t.textContent="";}}});}
+async function show(id){const p=data.points.find(x=>x.id===id);if(!p)return;
+  $("#detP").innerHTML=`<button class="close" id="cl">✕</button><h2>${esc(p.icon||"")} ${esc(p.title)}</h2>
+    <div class="muted">${esc(fmt(p.date))}${p.region?" · "+esc(p.region):""}</div>
+    <div class="txt">${esc(p.text)}</div><div id="ph"></div>
+    <a class="lnk" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lon}">📍 In Google Maps öffnen (${p.lat.toFixed(5)}, ${p.lon.toFixed(5)})</a>`;
+  $("#det").style.display="block";$("#cl").onclick=()=>$("#det").style.display="none";
+  map.setView([p.lat,p.lon],Math.max(map.getZoom(),11));
+  for(const ph of p.photos||[]){const u=await photo(ph);if(u&&$("#ph"))$("#ph").insertAdjacentHTML("beforeend",`<img src="${u}" alt="">`);}}
+$("#det").onclick=e=>{if(e.target.id==="det")$("#det").style.display="none";};
+async function openPage(pw,keep){$("#lErr").textContent="Entschlüssle …";
+  try{await load(pw);if(keep)try{localStorage.setItem("fam_pw",pw);}catch(e){}$("#lErr").textContent="";render();}
+  catch(e){$("#lErr").textContent=e.message;try{localStorage.removeItem("fam_pw");}catch(x){}}}
+$("#lForm").onsubmit=e=>{e.preventDefault();openPage($("#pw").value,$("#keep").checked);};
+$("#logout").onclick=()=>{try{localStorage.removeItem("fam_pw");}catch(e){}location.reload();};
+$("#reload").onclick=async()=>{const pw=sessionStorage.getItem("fam_s")||localStorage.getItem("fam_pw");if(pw){await load(pw);render();}};
+$("#lForm").addEventListener("submit",()=>{try{sessionStorage.setItem("fam_s",$("#pw").value);}catch(e){}});
+(()=>{let pw="";try{pw=localStorage.getItem("fam_pw")||sessionStorage.getItem("fam_s")||"";}catch(e){}if(pw)openPage(pw,false);})();
+</script>
+</body>
+</html>
