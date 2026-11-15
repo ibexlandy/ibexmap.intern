@@ -4,111 +4,194 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#92b78c">
 <title>Unsere Reise</title>
+<link rel="icon" href="https://ibexlandy.github.io/ibexmap/favicon.png">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <style>
-:root{--bg:#f4f1ea;--ink:#222;--muted:#6b6b6b;--accent:#2f3b2f;--accent2:#c8742c;--line:#d9d3c7}
+:root{--g:#92b78c;--g2:#b9d1b4;--g3:#e8f0e6;--dk:#13200f;--ink:#1d261b;--muted:#5d6b5a;--acc:#c8742c;--line:#dfe6dc;--topo:url(https://ibexlandy.github.io/ibexmap/topo.svg)}
 *{box-sizing:border-box}
-html,body{margin:0;height:100%;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);background:var(--bg)}
-header{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--accent);color:#fff}
-header h1{font-size:18px;margin:0;flex:1;font-weight:600}
-header button{border:1px solid rgba(255,255,255,.5);background:none;color:#fff;border-radius:8px;padding:4px 10px;font:inherit;font-size:13px}
-#app{display:none;flex-direction:column;height:100vh;height:100dvh}
-#map{height:45vh;min-height:220px;flex:none}
-#list{flex:1;overflow:auto;padding:10px 12px 30px}
-.upd{font-size:12px;color:var(--muted);margin:0 0 8px}
-.it{display:flex;gap:10px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px;margin-bottom:8px;cursor:pointer}
-.it .th{width:72px;height:72px;border-radius:8px;flex:none;background:#ddd center/cover;display:flex;align-items:center;justify-content:center;font-size:28px}
-.it .t{font-weight:600}.it .s{font-size:12px;color:var(--muted);margin-top:2px}
-.it .x{font-size:13px;margin-top:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.pin{width:28px;height:28px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center}
-.pin span{transform:rotate(45deg);font-size:14px}
-#login{max-width:380px;margin:12vh auto 0;padding:24px;background:#fff;border-radius:14px;box-shadow:0 2px 14px rgba(0,0,0,.12)}
-#login h2{margin:0 0 6px}
-input{width:100%;font:inherit;padding:10px;border:1px solid var(--line);border-radius:8px;margin-top:10px}
-.btn{border:0;border-radius:8px;padding:11px 16px;font:inherit;font-weight:600;background:var(--accent);color:#fff;margin-top:12px;width:100%}
-.muted{color:var(--muted);font-size:13px}
-.err{color:#b00020;font-size:14px;margin-top:8px;min-height:1em}
-#det{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;z-index:2000}
-#det .p{position:absolute;left:0;right:0;bottom:0;max-height:92%;overflow:auto;background:var(--bg);border-radius:16px 16px 0 0;padding:16px 16px calc(24px + env(safe-area-inset-bottom))}
-@media (min-width:900px){#det .p{left:auto;top:0;width:480px;max-height:none;border-radius:0}#app{flex-direction:row}#map{height:100%;flex:1}#list{flex:none;width:420px}}
-#det h2{margin:0 0 4px}
-#det img{width:100%;border-radius:10px;margin-top:8px;background:#ddd;min-height:120px}
-.txt{white-space:pre-wrap;line-height:1.5;margin-top:10px}
-.lnk{display:inline-block;margin-top:12px;color:var(--accent2);font-weight:600}
-.close{float:right;border:0;background:#fff;border-radius:50%;width:34px;height:34px;font-size:18px}
+html,body{margin:0;height:100%;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);background:#f6f8f5}
+button{font:inherit;cursor:pointer}
+/* Anmeldung */
+#login{min-height:100%;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--g) var(--topo) repeat}
+.lbox{width:100%;max-width:380px;background:#fff;border-radius:20px;box-shadow:0 10px 40px rgba(19,32,15,.25);padding:28px 26px;text-align:center}
+.lbox img{width:84px;height:84px;border-radius:18px;box-shadow:0 2px 10px rgba(0,0,0,.2)}
+.lbox h2{margin:14px 0 4px;font-size:22px}
+.lbox p{color:var(--muted);font-size:14px;margin:0 0 14px;line-height:1.45}
+input[type=password]{width:100%;font:inherit;font-size:16px;padding:12px 14px;border:1px solid #cfd8cc;border-radius:12px;text-align:center}
+.keep{display:flex;gap:8px;align-items:center;justify-content:center;font-size:13px;color:var(--muted);margin-top:12px}
+.btn{border:0;border-radius:12px;padding:13px 16px;font-weight:700;font-size:16px;background:var(--dk);color:#fff;margin-top:14px;width:100%}
+.err{color:#b00020;font-size:14px;margin-top:10px;min-height:1.2em}
+/* Aufbau */
+#app{display:none;height:100vh;height:100dvh}
+#side{display:flex;flex-direction:column;min-height:0;background:#f6f8f5}
+#tl{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;scroll-behavior:smooth}
+#map{background:#dfe6dc}
+@media (min-width:900px){#app{grid-template-columns:480px 1fr}#side{height:100%;border-right:1px solid var(--line);box-shadow:4px 0 20px rgba(0,0,0,.06);z-index:2}#map{height:100%}}
+@media (max-width:899px){#app{grid-template-rows:40vh 1fr}#map{order:-1}.hero h1{font-size:20px}.hero img{width:38px;height:38px}.ib{width:34px;height:34px}}
+/* Kopf mit Statistik */
+.hero{background:var(--g) var(--topo) repeat;padding:18px 20px 16px;color:var(--dk);position:relative}
+.hero .top{display:flex;align-items:center;gap:12px}
+.hero img{width:44px;height:44px;border-radius:10px;box-shadow:0 0 0 1px rgba(0,0,0,.2)}
+.hero h1{margin:0;font-size:24px;line-height:1.15;flex:1;text-shadow:0 0 8px var(--g)}
+.hero .acts{display:flex;gap:6px}
+.ib{width:38px;height:38px;border-radius:50%;border:0;background:rgba(255,255,255,.75);color:var(--dk);display:flex;align-items:center;justify-content:center}
+.ib:hover{background:#fff}
+.dates{font-size:14px;margin-top:8px;font-weight:600;text-shadow:0 0 6px var(--g)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px}
+.st{background:rgba(255,255,255,.85);border-radius:12px;padding:9px 6px;text-align:center}
+.st b{display:block;font-size:20px;line-height:1.1}.st span{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.upd{font-size:12px;color:var(--muted);padding:10px 20px 0}
+/* Zeitleiste */
+.steps{position:relative;padding:8px 16px 40px 16px}
+.steps::before{content:"";position:absolute;left:35px;top:20px;bottom:40px;width:3px;background:repeating-linear-gradient(var(--g) 0 8px,transparent 8px 14px);border-radius:2px}
+.leg{display:flex;align-items:center;gap:10px;margin:14px 0 6px 8px;font-size:12.5px;color:var(--muted);position:relative}
+.leg i{width:26px;height:26px;border-radius:50%;background:#fff;border:2px solid var(--g);display:flex;align-items:center;justify-content:center;font-style:normal;font-size:12px;flex:none;z-index:1}
+.step{position:relative;margin:6px 0 18px 52px;background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(19,32,15,.08);overflow:hidden;cursor:pointer;transition:box-shadow .2s,transform .2s}
+.step::before{content:"";position:absolute;left:-28px;top:20px;width:14px;height:14px;border-radius:50%;background:var(--acc);border:3px solid #fff;box-shadow:0 0 0 2px var(--acc)}
+.step.on{box-shadow:0 0 0 2px var(--acc),0 6px 20px rgba(19,32,15,.15)}
+.sh{padding:14px 16px 4px}
+.sday{font-size:12px;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.05em}
+.sh h3{margin:3px 0 2px;font-size:18px;line-height:1.25}
+.sloc{font-size:13px;color:var(--muted)}
+.stxt{padding:6px 16px 14px;font-size:15px;line-height:1.55;white-space:pre-wrap}
+.pics{display:grid;gap:3px;grid-template-columns:repeat(6,1fr)}
+.pics div{background:var(--g3) center/cover;aspect-ratio:1/1;position:relative}
+.pics div:first-child{grid-column:1/-1;aspect-ratio:16/10}
+.pics.n2 div:not(:first-child){grid-column:span 6;aspect-ratio:16/10}
+.pics.n3 div:not(:first-child){grid-column:span 3}
+.pics.n4 div:not(:first-child){grid-column:span 2}
+.pics .more{position:absolute;inset:0;background:rgba(0,0,0,.45);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px}
+.end{margin:10px 0 0 52px;font-size:13px;color:var(--muted)}
+/* Karte */
+.mk{width:38px;height:38px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.4);background:var(--acc) center/cover;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;transition:transform .2s}
+.mk.on{transform:scale(1.45);border-color:var(--acc);z-index:1000}
+.leaflet-control-layers{border:0!important;border-radius:12px!important;box-shadow:0 2px 10px rgba(0,0,0,.25)!important}
+/* Fotos gross */
+#lb{position:fixed;inset:0;background:rgba(10,14,9,.94);display:none;z-index:3000;align-items:center;justify-content:center}
+#lb img{max-width:96vw;max-height:86vh;border-radius:6px;box-shadow:0 4px 30px rgba(0,0,0,.6)}
+#lb .nav{position:absolute;top:50%;transform:translateY(-50%);width:48px;height:48px;border-radius:50%;border:0;background:rgba(255,255,255,.15);color:#fff;font-size:26px}
+#lb .prev{left:12px}#lb .next{right:12px}
+#lb .x{position:absolute;top:calc(12px + env(safe-area-inset-top));right:12px;width:44px;height:44px;border-radius:50%;border:0;background:rgba(255,255,255,.15);color:#fff;font-size:20px}
+#lb .cap{position:absolute;bottom:calc(14px + env(safe-area-inset-bottom));left:0;right:0;text-align:center;color:#ddd;font-size:14px}
 </style>
 </head>
 <body>
-<div id="login">
-  <h2 id="lTitle">Familienseite</h2>
-  <p class="muted">Diese Seite ist verschlüsselt. Bitte das Passwort eingeben, das ihr von uns bekommen habt.</p>
+<div id="login"><div class="lbox">
+  <img src="https://ibexlandy.github.io/ibexmap/icon-192.png" alt="">
+  <h2 id="lTitle">Unsere Reise</h2>
+  <p>Diese Seite ist verschlüsselt. Bitte das Passwort eingeben, das ihr von uns bekommen habt.</p>
   <form id="lForm"><input id="pw" type="password" autocomplete="current-password" placeholder="Passwort">
-  <label class="muted" style="display:flex;gap:8px;align-items:center;margin-top:10px"><input type="checkbox" id="keep" style="width:auto;margin:0"> Auf diesem Gerät merken</label>
-  <button class="btn" type="submit">Öffnen</button></form>
+  <label class="keep"><input type="checkbox" id="keep"> Auf diesem Gerät merken</label>
+  <button class="btn" type="submit">Reise ansehen</button></form>
   <div class="err" id="lErr"></div>
+</div></div>
+<div id="app" style="display:none">
+  <div id="side"><div id="tl"></div></div>
+  <div id="map"></div>
 </div>
-<div id="app">
-  <div style="display:flex;flex-direction:column;flex:1;min-height:0">
-    <header><h1 id="title">Unsere Reise</h1><button id="reload">Aktualisieren</button><button id="logout">Abmelden</button></header>
-    <div id="map"></div>
-  </div>
-  <div id="list"></div>
-</div>
-<div id="det"><div class="p" id="detP"></div></div>
+<div id="lb"><img id="lbImg" alt=""><button class="nav prev" id="lbP">‹</button><button class="nav next" id="lbN">›</button><button class="x" id="lbX">✕</button><div class="cap" id="lbC"></div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
 "use strict";
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
-let key=null,data=null,map=null,layer=null;const urls={};
+const IC={reload:'<path d="M20 12a8 8 0 1 1-2.3-5.7L20 8.5M20 4v4.5h-4.5"/>',out:'<path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 16l-4-4 4-4M6 12h10"/>',last:'<path d="M12 4v14M6 12l6 6 6-6M5 21h14"/>'};
+const ic=k=>`<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${IC[k]}</svg>`;
+let key=null,data=null,map=null,layer=null,marks={},steps=[],cur="";const urls={};
 async function deriveKey(pw,salt,iter){const base=await crypto.subtle.importKey("raw",new TextEncoder().encode(pw),"PBKDF2",false,["deriveKey"]);
   return crypto.subtle.deriveKey({name:"PBKDF2",salt,iterations:iter,hash:"SHA-256"},base,{name:"AES-GCM",length:256},false,["decrypt"]);}
 async function dec(k,bytes){return crypto.subtle.decrypt({name:"AES-GCM",iv:bytes.slice(0,12)},k,bytes.slice(12));}
 async function load(pw){
-  const r=await fetch("data.json?t="+Date.now(),{cache:"no-store"});if(!r.ok)throw new Error("Noch keine Daten veröffentlicht.");
-  const f=await r.json();
-  key=await deriveKey(pw,unb64(f.salt),f.iter);
+  const r=await fetch("data.json?t="+Date.now(),{cache:"no-store"});if(!r.ok)throw new Error("Noch keine Einträge veröffentlicht.");
+  const f=await r.json();key=await deriveKey(pw,unb64(f.salt),f.iter);
   let plain;try{plain=await dec(key,unb64(f.data));}catch(e){throw new Error("Passwort falsch.");}
   data=JSON.parse(new TextDecoder().decode(plain));}
 async function photo(id){if(urls[id])return urls[id];
   const r=await fetch("p/"+id+".bin");if(!r.ok)return "";const b=new Uint8Array(await r.arrayBuffer());
   urls[id]=URL.createObjectURL(new Blob([await dec(key,b)],{type:"image/jpeg"}));return urls[id];}
-const fmt=d=>{try{return new Date(d+"T12:00:00").toLocaleDateString("de-CH",{weekday:"short",day:"numeric",month:"long",year:"numeric"});}catch(e){return d;}};
+/* Hilfen */
+const D=d=>new Date((d||"")+"T12:00:00");
+const fmtL=d=>{try{return D(d).toLocaleDateString("de-CH",{weekday:"long",day:"numeric",month:"long",year:"numeric"});}catch(e){return d;}};
+const fmtS=d=>{try{return D(d).toLocaleDateString("de-CH",{day:"numeric",month:"long",year:"numeric"});}catch(e){return d;}};
+const DN=(()=>{try{return new Intl.DisplayNames(["de"],{type:"region"});}catch(e){return null;}})();
+const cName=c=>{try{return c&&DN?DN.of(c):c||"";}catch(e){return c||"";}};
+const flag=c=>c&&/^[A-Z]{2}$/.test(c)?String.fromCodePoint(...[...c].map(x=>0x1F1A5+x.charCodeAt(0))):"";
+const km=(a,b)=>{const R=6371,r=x=>x*Math.PI/180,dLa=r(b.lat-a.lat),dLo=r(b.lon-a.lon);const h=Math.sin(dLa/2)**2+Math.cos(r(a.lat))*Math.cos(r(b.lat))*Math.sin(dLo/2)**2;return 2*R*Math.asin(Math.sqrt(h));};
+const nf=n=>Math.round(n).toLocaleString("de-CH");
 function render(){
-  document.title=data.title;$("#title").textContent=data.title;
-  $("#login").style.display="none";$("#app").style.display="flex";
-  if(!map){map=L.map("map");
+  document.title=data.title;$("#lTitle").textContent=data.title;
+  $("#login").style.display="none";$("#app").style.display="grid";
+  steps=[...data.points].sort((a,b)=>(a.date||"").localeCompare(b.date||"")||(a.t||0)-(b.t||0));
+  const first=steps[0],last=steps[steps.length-1];
+  let dist=0;for(let i=1;i<steps.length;i++)dist+=km(steps[i-1],steps[i]);
+  const days=first?Math.round((D(last.to||last.date)-D(first.date))/864e5)+1:0;
+  const ccs=[...new Set(steps.map(p=>p.country).filter(Boolean))];
+  const nPh=steps.reduce((a,p)=>a+(p.photos||[]).length,0);
+  const dayNo=p=>first?Math.round((D(p.date)-D(first.date))/864e5)+1:1;
+  let h=`<div class="hero"><div class="top"><img src="https://ibexlandy.github.io/ibexmap/icon-192.png" alt=""><h1>${esc(data.title)}</h1>
+     <div class="acts"><button class="ib" id="bLast" title="Zum neusten Eintrag">${ic("last")}</button><button class="ib" id="bRe" title="Aktualisieren">${ic("reload")}</button><button class="ib" id="bOut" title="Abmelden">${ic("out")}</button></div></div>
+     ${first?`<div class="dates">${esc(fmtS(first.date))} – ${esc(fmtS(last.to||last.date))}${ccs.length?" · "+ccs.map(flag).join(" "):""}</div>`:""}
+     <div class="stats"><div class="st"><b>${days}</b><span>Tage</span></div><div class="st"><b>${nf(dist)}</b><span>km</span></div><div class="st"><b>${ccs.length||"–"}</b><span>Länder</span></div><div class="st"><b>${steps.length}</b><span>Orte</span></div></div></div>
+   <div class="upd">Zuletzt aktualisiert ${new Date(data.updated).toLocaleString("de-CH",{dateStyle:"medium",timeStyle:"short"})}${nPh?` · ${nPh} Fotos`:""}</div>
+   <div class="steps">`;
+  steps.forEach((p,i)=>{
+    if(i>0){const d=km(steps[i-1],p);h+=`<div class="leg"><i>${i+1}</i>${d>=1?`${nf(d)} km`:"gleich nebenan"}${p.date!==steps[i-1].date?` · ${Math.round((D(p.date)-D(steps[i-1].date))/864e5)} Tag${Math.round((D(p.date)-D(steps[i-1].date))/864e5)==1?"":"e"} später`:""}</div>`;}
+    else h+=`<div class="leg"><i>1</i>Start</div>`;
+    const n=(p.photos||[]).length,nights=p.to?Math.round((D(p.to)-D(p.date))/864e5):0;
+    h+=`<div class="step" id="s_${p.id}" data-id="${p.id}">
+      ${n?`<div class="pics n${Math.min(n,4)}">${p.photos.slice(0,4).map((ph,k)=>`<div data-ph="${ph}" data-k="${k}">${k===3&&n>4?`<span class="more">+${n-4}</span>`:""}</div>`).join("")}</div>`:""}
+      <div class="sh"><div class="sday">Tag ${dayNo(p)} · ${esc(fmtL(p.date))}${nights>0?` · ${nights} ${nights==1?"Nacht":"Nächte"}`:""}</div>
+      <h3>${esc(p.title)}</h3><div class="sloc">${p.country?flag(p.country)+" ":""}${esc([p.region,cName(p.country)].filter(Boolean).join(", "))}${p.cat?` · ${esc(p.cat)}`:""}</div></div>
+      ${p.text?`<div class="stxt">${esc(p.text)}</div>`:`<div style="height:12px"></div>`}</div>`;});
+  h+=steps.length?`<div class="end">Fortsetzung folgt …</div></div>`:`<p style="padding:20px" class="upd">Noch keine Einträge.</p></div>`;
+  $("#tl").innerHTML=h;
+  $("#bOut").onclick=()=>{try{localStorage.removeItem("fam_pw");sessionStorage.removeItem("fam_s");}catch(e){}location.reload();};
+  $("#bRe").onclick=async()=>{const pw=sessionStorage.getItem("fam_s")||localStorage.getItem("fam_pw");if(pw){await load(pw);render();}};
+  $("#bLast").onclick=()=>{if(last)go(last.id,true);};
+  /* Karte */
+  if(!map){map=L.map("map",{zoomControl:false});
     const base={"Karte":L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,attribution:"© Esri, HERE, Garmin, OpenStreetMap"}),
-      "Satellit":L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,attribution:"© Esri, Maxar"})};
-    base["Karte"].addTo(map);L.control.layers(base).addTo(map);layer=L.layerGroup().addTo(map);}
-  layer.clearLayers();
-  const pts=[...data.points].sort((a,b)=>(a.date||"").localeCompare(b.date||""));
-  if(pts.length>1)L.polyline(pts.map(p=>[p.lat,p.lon]),{color:"#c8742c",weight:3,opacity:.7,dashArray:"6 6"}).addTo(layer);
-  pts.forEach(p=>L.marker([p.lat,p.lon],{icon:L.divIcon({className:"",iconSize:[28,28],iconAnchor:[14,28],html:`<div class="pin" style="background:${p.color||"#2f3b2f"}"><span>${p.icon||"•"}</span></div>`})}).addTo(layer).on("click",()=>show(p.id)));
-  if(pts.length)map.fitBounds(L.latLngBounds(pts.map(p=>[p.lat,p.lon])),{padding:[30,30],maxZoom:12});else map.setView([31.8,-6.5],5);
-  const rev=[...pts].reverse();
-  $("#list").innerHTML=`<p class="upd">Zuletzt aktualisiert: ${new Date(data.updated).toLocaleString("de-CH",{dateStyle:"medium",timeStyle:"short"})} · ${pts.length} Einträge</p>`+
-    (rev.map(p=>`<div class="it" data-id="${p.id}"><div class="th" id="th_${p.id}">${p.icon||"📍"}</div><div><div class="t">${esc(p.title)}</div><div class="s">${esc(fmt(p.date))}${p.region?" · "+esc(p.region):""}</div><div class="x">${esc(p.text)}</div></div></div>`).join("")||`<p class="muted">Noch keine Einträge.</p>`);
-  $("#list").querySelectorAll(".it").forEach(e=>e.onclick=()=>show(e.dataset.id));
-  rev.forEach(async p=>{if(p.photos&&p.photos[0]){const u=await photo(p.photos[0]);const t=$("#th_"+p.id);if(u&&t){t.style.backgroundImage=`url(${u})`;t.textContent="";}}});}
-async function show(id){const p=data.points.find(x=>x.id===id);if(!p)return;
-  $("#detP").innerHTML=`<button class="close" id="cl">✕</button><h2>${esc(p.icon||"")} ${esc(p.title)}</h2>
-    <div class="muted">${esc(fmt(p.date))}${p.region?" · "+esc(p.region):""}</div>
-    <div class="txt">${esc(p.text)}</div><div id="ph"></div>
-    <a class="lnk" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lon}">📍 In Google Maps öffnen (${p.lat.toFixed(5)}, ${p.lon.toFixed(5)})</a>`;
-  $("#det").style.display="block";$("#cl").onclick=()=>$("#det").style.display="none";
-  map.setView([p.lat,p.lon],Math.max(map.getZoom(),11));
-  for(const ph of p.photos||[]){const u=await photo(ph);if(u&&$("#ph"))$("#ph").insertAdjacentHTML("beforeend",`<img src="${u}" alt="">`);}}
-$("#det").onclick=e=>{if(e.target.id==="det")$("#det").style.display="none";};
+      "Satellit":L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,attribution:"© Esri, Maxar"}),
+      "Topo":L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",{subdomains:"abc",maxZoom:17,attribution:"© OpenStreetMap, SRTM | © OpenTopoMap"})};
+    base["Karte"].addTo(map);L.control.layers(base,null,{position:"topright"}).addTo(map);L.control.zoom({position:"bottomright"}).addTo(map);layer=L.layerGroup().addTo(map);}
+  layer.clearLayers();marks={};
+  if(steps.length>1){const ll=steps.map(p=>[p.lat,p.lon]);L.polyline(ll,{color:"#fff",weight:7,opacity:.9}).addTo(layer);L.polyline(ll,{color:"#c8742c",weight:3.5,opacity:1}).addTo(layer);}
+  steps.forEach((p,i)=>{const m=L.marker([p.lat,p.lon],{icon:L.divIcon({className:"",iconSize:[38,38],iconAnchor:[19,19],html:`<div class="mk" id="m_${p.id}">${i+1}</div>`}),riseOnHover:true}).addTo(layer).on("click",()=>go(p.id,true));marks[p.id]=m;});
+  if(steps.length)map.fitBounds(L.latLngBounds(steps.map(p=>[p.lat,p.lon])),{padding:[40,40],maxZoom:11});else map.setView([31.8,-6.5],5);
+  setTimeout(()=>map.invalidateSize(),50);
+  /* Fotos laden (Zeitleiste und Kartenpunkte) */
+  (async()=>{for(const p of steps){const ids=p.photos||[];
+    for(const el of document.querySelectorAll(`#s_${p.id} [data-ph]`)){const u=await photo(el.dataset.ph);if(u)el.style.backgroundImage=`url(${u})`;}
+    if(ids[0]){const u=await photo(ids[0]);const mk=document.getElementById("m_"+p.id);if(u&&mk){mk.style.backgroundImage=`url(${u})`;mk.textContent="";}}}})();
+  /* Klicks */
+  $("#tl").querySelectorAll(".step").forEach(el=>el.onclick=e=>{const ph=e.target.closest("[data-ph]");const p=steps.find(x=>x.id===el.dataset.id);
+    if(ph){lightbox(p,+ph.dataset.k);return;}go(p.id,false);});
+  /* Beim Scrollen: aktiven Eintrag auf der Karte zeigen */
+  const io=new IntersectionObserver(es=>{const v=es.filter(x=>x.isIntersecting).sort((a,b)=>a.boundingClientRect.top-b.boundingClientRect.top)[0];if(v)mark(v.target.dataset.id,true);},{root:$("#tl"),rootMargin:"-30% 0px -55% 0px"});
+  $("#tl").querySelectorAll(".step").forEach(el=>io.observe(el));}
+function mark(id,pan){if(cur===id)return;cur=id;document.querySelectorAll(".step.on,.mk.on").forEach(x=>x.classList.remove("on"));
+  const s=document.getElementById("s_"+id),m=document.getElementById("m_"+id);if(s)s.classList.add("on");if(m)m.classList.add("on");
+  const p=steps.find(x=>x.id===id);if(p&&pan){const ll=L.latLng(p.lat,p.lon);if(!map.getBounds().pad(-0.15).contains(ll))map.panTo(ll,{animate:true});}}
+function go(id,scroll){const p=steps.find(x=>x.id===id);if(!p)return;cur="";mark(id,false);map.setView([p.lat,p.lon],Math.max(map.getZoom(),10),{animate:true});
+  if(scroll){const s=document.getElementById("s_"+id);if(s)s.scrollIntoView({block:"start",behavior:"smooth"});}}
+/* Fotos gross ansehen */
+let lbP=null,lbK=0;
+async function lightbox(p,k){lbP=p;lbK=k;$("#lb").style.display="flex";await lbShow();}
+async function lbShow(){const ids=lbP.photos||[];lbK=(lbK+ids.length)%ids.length;$("#lbImg").src=await photo(ids[lbK]);
+  $("#lbC").textContent=`${lbP.title} · ${lbK+1} / ${ids.length}`;$("#lbP").style.display=$("#lbN").style.display=ids.length>1?"":"none";}
+$("#lbX").onclick=()=>$("#lb").style.display="none";$("#lb").onclick=e=>{if(e.target.id==="lb")$("#lb").style.display="none";};
+$("#lbP").onclick=()=>{lbK--;lbShow();};$("#lbN").onclick=()=>{lbK++;lbShow();};
+document.addEventListener("keydown",e=>{if($("#lb").style.display!=="flex")return;if(e.key==="Escape")$("#lb").style.display="none";if(e.key==="ArrowLeft"){lbK--;lbShow();}if(e.key==="ArrowRight"){lbK++;lbShow();}});
+let tx=0;$("#lb").addEventListener("touchstart",e=>{tx=e.touches[0].clientX;},{passive:true});
+$("#lb").addEventListener("touchend",e=>{const d=e.changedTouches[0].clientX-tx;if(Math.abs(d)>50){lbK+=d<0?1:-1;lbShow();}},{passive:true});
+/* Anmelden */
 async function openPage(pw,keep){$("#lErr").textContent="Entschlüssle …";
-  try{await load(pw);if(keep)try{localStorage.setItem("fam_pw",pw);}catch(e){}$("#lErr").textContent="";render();}
+  try{await load(pw);try{sessionStorage.setItem("fam_s",pw);if(keep)localStorage.setItem("fam_pw",pw);}catch(e){}$("#lErr").textContent="";render();}
   catch(e){$("#lErr").textContent=e.message;try{localStorage.removeItem("fam_pw");}catch(x){}}}
 $("#lForm").onsubmit=e=>{e.preventDefault();openPage($("#pw").value,$("#keep").checked);};
-$("#logout").onclick=()=>{try{localStorage.removeItem("fam_pw");}catch(e){}location.reload();};
-$("#reload").onclick=async()=>{const pw=sessionStorage.getItem("fam_s")||localStorage.getItem("fam_pw");if(pw){await load(pw);render();}};
-$("#lForm").addEventListener("submit",()=>{try{sessionStorage.setItem("fam_s",$("#pw").value);}catch(e){}});
 (()=>{let pw="";try{pw=localStorage.getItem("fam_pw")||sessionStorage.getItem("fam_s")||"";}catch(e){}if(pw)openPage(pw,false);})();
 </script>
 </body>
