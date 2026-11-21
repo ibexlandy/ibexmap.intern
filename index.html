@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-hmVdas6WUFtV2NdO358QRUcXsFl7aM9VYRaB58/YEhg=' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; connect-src 'self'; font-src 'self' data: https:; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-RCr7hC6mzwCasDbEvUaRWJBtwi9iyLCAt+1D2UKk+DY=' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; connect-src 'self'; font-src 'self' data: https:; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#92b78c">
@@ -31,14 +31,17 @@ input[type=password]{width:100%;font:inherit;font-size:16px;padding:12px 14px;bo
 #tl{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;scroll-behavior:smooth}
 #map{background:#dfe6dc}
 @media (min-width:900px){#app{grid-template-columns:480px 1fr}#side{height:100%;border-right:1px solid var(--line);box-shadow:4px 0 20px rgba(0,0,0,.06);z-index:2}#map{height:100%}}
-@media (max-width:899px){#app{grid-template-rows:40vh 1fr}#map{order:-1}.hero h1{font-size:20px}.hero img{width:38px;height:38px}.ib{width:34px;height:34px}}
+@media (max-width:899px){#app{grid-template-rows:1fr 38vh}#map{border-top:1px solid var(--line)}.hero h1{font-size:20px}.hero img{width:38px;height:38px}.ib{width:34px;height:34px}}
 /* Kopf mit Statistik */
 .hero{background:transparent;padding:18px 20px 16px;color:var(--dk);position:relative}
 .hero .top{display:flex;align-items:center;gap:12px}
 .hero img{width:44px;height:44px;border-radius:10px;box-shadow:0 0 0 1px rgba(0,0,0,.2)}
 .hero h1{margin:0;font-size:24px;line-height:1.15;flex:1;text-shadow:0 0 8px #a1bb9b}
 .hero .acts{display:flex;gap:6px}
-.ib{width:38px;height:38px;border-radius:50%;border:0;background:rgba(255,255,255,.75);color:var(--dk);display:flex;align-items:center;justify-content:center}
+.ib{width:38px;height:38px;border-radius:50%;border:0;background:rgba(255,255,255,.75);color:var(--dk);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.ib.spin svg{animation:ibspin .8s linear infinite}@keyframes ibspin{to{transform:rotate(360deg)}}
+#ftoast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#13200f;color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.3);opacity:0;transition:opacity .2s;pointer-events:none;max-width:90vw;text-align:center}
+#ftoast.on{opacity:1}
 .ib:hover{background:#fff}
 .dates{font-size:14px;margin-top:8px;font-weight:600;text-shadow:0 0 6px #a1bb9b}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px}
@@ -128,6 +131,8 @@ const cName=c=>{try{return c&&DN?DN.of(c):c||"";}catch(e){return c||"";}};
 const flag=c=>c&&/^[A-Z]{2}$/.test(c)?String.fromCodePoint(...[...c].map(x=>0x1F1A5+x.charCodeAt(0))):"";
 const km=(a,b)=>{const R=6371,r=x=>x*Math.PI/180,dLa=r(b.lat-a.lat),dLo=r(b.lon-a.lon);const h=Math.sin(dLa/2)**2+Math.cos(r(a.lat))*Math.cos(r(b.lat))*Math.sin(dLo/2)**2;return 2*R*Math.asin(Math.sqrt(h));};
 const nf=n=>Math.round(n).toLocaleString("de-CH");
+function ftoast(t){let el=document.getElementById("ftoast");if(!el){el=document.createElement("div");el.id="ftoast";document.body.appendChild(el);}
+  el.textContent=t;el.classList.add("on");clearTimeout(ftoast.h);ftoast.h=setTimeout(()=>el.classList.remove("on"),2600);}
 function render(){
   document.title=data.title;$("#lTitle").textContent=data.title;
   $("#login").style.display="none";$("#app").style.display="grid";
@@ -159,7 +164,12 @@ function render(){
   $("#tl").innerHTML=h;
   $("#tl").querySelectorAll("[data-o]").forEach(b=>b.onclick=()=>{newFirst=b.dataset.o==="new";try{localStorage.setItem("fam_order",b.dataset.o);}catch(e){}render();});
   $("#bOut").onclick=()=>{try{localStorage.removeItem("fam_pw");sessionStorage.removeItem("fam_s");}catch(e){}location.reload();};
-  $("#bRe").onclick=async()=>{const pw=sessionStorage.getItem("fam_s")||localStorage.getItem("fam_pw");if(pw){await load(pw);render();}};
+  /* Aktualisieren: Symbol dreht sich, danach kurze Meldung, ob es Neues gibt */
+  $("#bRe").onclick=async()=>{const pw=sessionStorage.getItem("fam_s")||localStorage.getItem("fam_pw");if(!pw)return;const b=$("#bRe");b.classList.add("spin");b.disabled=true;
+    const before=data?data.updated:0,nBefore=data?data.points.length:0;const t0=Date.now();
+    try{await load(pw);await new Promise(r=>setTimeout(r,Math.max(0,600-(Date.now()-t0))));render();
+      const n=data.points.length-nBefore;ftoast(data.updated>before?(n>0?`${n} neue${n==1?"r Eintrag":" Einträge"}`:"Aktualisiert – Einträge geändert"):"Keine neuen Einträge");}
+    catch(e){b.classList.remove("spin");b.disabled=false;ftoast("Aktualisieren nicht möglich – Internet prüfen");}};
   $("#bLast").onclick=()=>{if(last)go(last.id,true);};
   /* Karte */
   if(!map){map=L.map("map",{zoomControl:false});
@@ -168,12 +178,10 @@ function render(){
       "Topo":L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",{subdomains:"abc",maxZoom:17,attribution:"© OpenStreetMap, SRTM | © OpenTopoMap"})};
     base["Karte"].addTo(map);L.control.layers(base,null,{position:"topright"}).addTo(map);L.control.zoom({position:"bottomright"}).addTo(map);layer=L.layerGroup().addTo(map);}
   layer.clearLayers();marks={};
-  /* gefahrene Strecke (aufgezeichnete Fahrspur), sonst Verbindungslinie zwischen den Stationen */
-  const trk=(data.tracks||[]).filter(t=>t.pts&&t.pts.length>1);
-  trk.forEach(t=>{L.polyline(t.pts,{color:"#fff",weight:7,opacity:.85}).addTo(layer);L.polyline(t.pts,{color:"#c8742c",weight:3.5,opacity:1}).addTo(layer);});
-  if(steps.length>1&&!trk.length){const ll=steps.map(p=>[p.lat,p.lon]);L.polyline(ll,{color:"#fff",weight:7,opacity:.9}).addTo(layer);L.polyline(ll,{color:"#c8742c",weight:3.5,opacity:1}).addTo(layer);}
+  /* Verbindungslinie zwischen den Stationen (keine Fahrspur – wird bewusst nicht veröffentlicht) */
+  if(steps.length>1){const ll=steps.map(p=>[p.lat,p.lon]);L.polyline(ll,{color:"#fff",weight:7,opacity:.9}).addTo(layer);L.polyline(ll,{color:"#c8742c",weight:3.5,opacity:1}).addTo(layer);}
   steps.forEach((p,i)=>{const m=L.marker([p.lat,p.lon],{icon:L.divIcon({className:"",iconSize:[38,38],iconAnchor:[19,19],html:`<div class="mk" id="m_${p.id}">${i+1}</div>`}),riseOnHover:true}).addTo(layer).on("click",()=>go(p.id,true));marks[p.id]=m;});
-  const allLL=[...steps.map(p=>[p.lat,p.lon]),...trk.flatMap(t=>t.pts)];
+  const allLL=steps.map(p=>[p.lat,p.lon]);
   if(allLL.length)map.fitBounds(L.latLngBounds(allLL),{padding:[40,40],maxZoom:11});else map.setView([31.8,-6.5],5);
   setTimeout(()=>map.invalidateSize(),50);
   /* Fotos laden (Zeitleiste und Kartenpunkte) */
